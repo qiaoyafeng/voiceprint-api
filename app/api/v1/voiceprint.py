@@ -205,6 +205,7 @@ async def get_voiceprint_list(
 
         result = voiceprint_service.get_voiceprint_list(page, page_size)
         return {
+            "code": 0,
             "success": True,
             "data": result
         }
