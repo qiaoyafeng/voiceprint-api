@@ -13,12 +13,12 @@ class VoiceprintRegisterRequest(BaseModel):
 
 class VoiceprintRegisterResponse(BaseModel):
     """声纹注册响应模型"""
-
+    code: int = 0
     success: bool
     msg: str
 
     class Config:
-        schema_extra = {"example": {"success": True, "msg": "已登记: user_001"}}
+        schema_extra = {"example": {"code": 0, "success": True, "msg": "已登记: user_001"}}
 
 
 class VoiceprintIdentifyRequest(BaseModel):
