@@ -139,6 +139,69 @@ class VoiceprintDB:
             logger.error(f"获取声纹特征总数失败，总耗时: {total_time:.3f}秒，错误: {e}")
             return 0
 
+    def get_voiceprint_list(self, page: int = 1, page_size: int = 10) -> Dict:
+        """
+        获取声纹列表，支持分页
+
+        Args:
+            page: 页码（从1开始）
+            page_size: 每页数量
+
+        Returns:
+            Dict: 包含总条数、列表数据的字典
+        """
+        start_time = time.time()
+        logger.info(f"开始查询声纹列表，页码: {page}，每页数量: {page_size}")
+
+        try:
+            # 计算偏移量
+            offset = (page - 1) * page_size
+
+            with db_connection.get_cursor() as cursor:
+                # 查询总数
+                cursor.execute("SELECT COUNT(*) FROM voiceprints")
+                total_result = cursor.fetchone()
+                total = total_result[0] if total_result else 0
+
+                # 查询数据
+                sql = """
+                SELECT id, speaker_id, created_at, updated_at
+                FROM voiceprints
+                ORDER BY created_at DESC
+                LIMIT %s OFFSET %s
+                """
+                cursor.execute(sql, (page_size, offset))
+                results = cursor.fetchall()
+
+                # 构造返回数据
+                voiceprint_list = []
+                for row in results:
+                    voiceprint_list.append({
+                        "id": row[0],
+                        "speaker_id": row[1],
+                        "created_at": row[2].isoformat() if row[2] else None,
+                        "updated_at": row[3].isoformat() if row[3] else None
+                    })
+
+                total_time = time.time() - start_time
+                logger.info(f"声纹列表查询完成，总数: {total}，当前页: {len(voiceprint_list)}，耗时: {total_time:.3f}秒")
+
+                return {
+                    "total": total,
+                    "page": page,
+                    "page_size": page_size,
+                    "list": voiceprint_list
+                }
+        except Exception as e:
+            total_time = time.time() - start_time
+            logger.error(f"获取声纹列表失败，总耗时: {total_time:.3f}秒，错误: {e}")
+            return {
+                "total": 0,
+                "page": page,
+                "page_size": page_size,
+                "list": []
+            }
+
 
 # 全局声纹数据库操作实例
 voiceprint_db = VoiceprintDB()

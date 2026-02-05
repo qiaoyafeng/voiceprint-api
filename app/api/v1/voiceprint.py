@@ -172,3 +172,43 @@ async def delete_voiceprint(
     except Exception as e:
         logger.error(f"删除声纹异常 {speaker_id}: {e}")
         raise HTTPException(status_code=500, detail=f"删除声纹失败: {str(e)}")
+
+
+@router.get(
+    "/list",
+    summary="获取声纹列表",
+    description="获取声纹列表，支持分页",
+    dependencies=[Depends(security)],
+)
+async def get_voiceprint_list(
+    token: AuthorizationToken,
+    page: int = 1,
+    page_size: int = 10,
+):
+    """
+    获取声纹列表接口
+
+    Args:
+        token: 接口令牌（Header）
+        page: 页码（从1开始）
+        page_size: 每页数量
+
+    Returns:
+        dict: 包含总条数、列表数据的字典
+    """
+    try:
+        # 参数验证
+        if page < 1:
+            page = 1
+        if page_size < 1 or page_size > 100:
+            page_size = 10
+
+        result = voiceprint_service.get_voiceprint_list(page, page_size)
+        return {
+            "success": True,
+            "data": result
+        }
+
+    except Exception as e:
+        logger.error(f"获取声纹列表异常: {e}")
+        raise HTTPException(status_code=500, detail=f"获取声纹列表失败: {str(e)}")

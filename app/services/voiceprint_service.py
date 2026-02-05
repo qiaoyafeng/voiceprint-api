@@ -234,7 +234,9 @@ class VoiceprintService:
         finally:
             # 清理临时文件
             if audio_path:
-                audio_processor.cleanup_temp_file(audio_path)
+                # 保留声纹音频文件
+                # audio_processor.cleanup_temp_file(audio_path)
+                pass
 
     def identify_voiceprint(
         self, speaker_ids: List[str], audio_bytes: bytes
@@ -361,6 +363,30 @@ class VoiceprintService:
         except Exception as e:
             total_time = time.time() - start_time
             logger.error(f"获取声纹总数失败，总耗时: {total_time:.3f}秒，错误: {e}")
+            raise
+
+    def get_voiceprint_list(self, page: int = 1, page_size: int = 10) -> Dict:
+        """
+        获取声纹列表，支持分页
+
+        Args:
+            page: 页码（从1开始）
+            page_size: 每页数量
+
+        Returns:
+            Dict: 包含总条数、列表数据的字典
+        """
+        start_time = time.time()
+        logger.info(f"开始获取声纹列表，页码: {page}，每页数量: {page_size}")
+
+        try:
+            result = voiceprint_db.get_voiceprint_list(page, page_size)
+            total_time = time.time() - start_time
+            logger.info(f"声纹列表获取完成，耗时: {total_time:.3f}秒")
+            return result
+        except Exception as e:
+            total_time = time.time() - start_time
+            logger.error(f"获取声纹列表失败，总耗时: {total_time:.3f}秒，错误: {e}")
             raise
 
 
